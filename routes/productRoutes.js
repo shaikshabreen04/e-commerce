@@ -1,6 +1,3 @@
-routes/productRoutes.js
-
-
 import express from "express";
 
 import {
@@ -18,33 +15,15 @@ import adminMiddleware from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
+// PUBLIC ROUTES
+router.get("/", getProducts);
+router.get("/:id", getSingleProduct);
 
-// GET ALL PRODUCTS
-router.get("/",authMiddleware,getProducts);
-
-
-// GET SINGLE PRODUCT
-router.get( "/:id",authMiddleware,getSingleProduct);
-
-
-// CREATE PRODUCT - ADMIN
-router.post("/",authMiddleware,adminMiddleware,createProduct);
-
-
-// UPDATE PRODUCT - ADMIN
-router.put("/:id",authMiddleware,adminMiddleware,updateProduct);
-
-
-// DELETE PRODUCT - ADMIN
-router.delete("/:id",authMiddleware,adminMiddleware,deleteProduct);
-
-
-// PUBLISH PRODUCT - ADMIN
-router.patch("/:id/publish",authMiddleware,adminMiddleware,publishProduct);
-
-
-// UNPUBLISH PRODUCT - ADMIN
-router.patch("/:id/unpublish",authMiddleware,adminMiddleware, unpublishProduct);
-
+// ADMIN ROUTES
+router.post("/", authMiddleware, adminMiddleware, createProduct);
+router.put("/:id", authMiddleware, adminMiddleware, updateProduct);
+router.delete("/:id", authMiddleware, adminMiddleware, deleteProduct);
+router.patch("/:id/publish", authMiddleware, adminMiddleware, publishProduct);
+router.patch("/:id/unpublish", authMiddleware, adminMiddleware, unpublishProduct);
 
 export default router;

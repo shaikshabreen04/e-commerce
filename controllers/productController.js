@@ -1,13 +1,19 @@
 import Product from "../models/Product.js";
 
-
 // ========================================
 // CREATE PRODUCT - ADMIN ONLY
 // ========================================
 
 export const createProduct = async (req, res) => {
   try {
-    const { name, description, price, category, stock, published } = req.body;
+    const {
+      name,
+      description,
+      price,
+      category,
+      stock,
+      published
+    } = req.body;
 
     const product = await Product.create({
       name,
@@ -34,8 +40,8 @@ export const createProduct = async (req, res) => {
 
 // ========================================
 // GET ALL PRODUCTS
-// ADMIN -> ALL PRODUCTS
-// USER -> ONLY PUBLISHED PRODUCTS
+// PUBLIC
+// ONLY PUBLISHED PRODUCTS
 // + FILTER + SORT + PAGINATION
 // ========================================
 
@@ -50,14 +56,15 @@ export const getProducts = async (req, res) => {
       limit = 10
     } = req.query;
 
-    const filter = {};
+    // Only published products are visible publicly
+    const filter = {
+      published: true
+    };
 
-    // Normal users can only see published products
-    if (!req.user || req.user.role !== "admin") {
-      filter.published = true;
-    }
+    // ========================================
+    // CATEGORY FILTER
+    // ========================================
 
-    // Category filter
     if (category) {
       filter.category = {
         $regex: `^${category}$`,
@@ -65,7 +72,10 @@ export const getProducts = async (req, res) => {
       };
     }
 
-    // Price filter
+    // ========================================
+    // PRICE FILTER
+    // ========================================
+
     if (minPrice || maxPrice) {
       filter.price = {};
 
@@ -78,7 +88,10 @@ export const getProducts = async (req, res) => {
       }
     }
 
-    // Sorting
+    // ========================================
+    // SORTING
+    // ========================================
+
     let sortOption = {};
 
     if (sort === "price_asc") {
@@ -89,18 +102,27 @@ export const getProducts = async (req, res) => {
       sortOption.createdAt = -1;
     }
 
-    // Pagination
+    // ========================================
+    // PAGINATION
+    // ========================================
+
     const pageNumber = Math.max(1, Number(page));
     const limitNumber = Math.max(1, Number(limit));
 
     const skip = (pageNumber - 1) * limitNumber;
 
+    // Count matching products
     const totalProducts = await Product.countDocuments(filter);
 
+    // Get products
     const products = await Product.find(filter)
       .sort(sortOption)
       .skip(skip)
       .limit(limitNumber);
+
+    // ========================================
+    // RESPONSE
+    // ========================================
 
     res.status(200).json({
       products,
@@ -121,23 +143,23 @@ export const getProducts = async (req, res) => {
 
 // ========================================
 // GET SINGLE PRODUCT
+// PUBLIC
+// ONLY PUBLISHED PRODUCTS
 // ========================================
 
 export const getSingleProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
+    // Product doesn't exist
     if (!product) {
       return res.status(404).json({
         message: "Product not found"
       });
     }
 
-    // Normal users cannot see unpublished products
-    if (
-      !product.published &&
-      (!req.user || req.user.role !== "admin")
-    ) {
+    // Unpublished products are not publicly visible
+    if (!product.published) {
       return res.status(404).json({
         message: "Product not found"
       });
@@ -197,7 +219,9 @@ export const updateProduct = async (req, res) => {
 
 export const deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const product = await Product.findByIdAndDelete(
+      req.params.id
+    );
 
     if (!product) {
       return res.status(404).json({
