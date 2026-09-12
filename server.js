@@ -1,20 +1,18 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 
-// Database connection
-const connectDB = require("./config/db");
+import connectDB from "./config/db.js";
 
-// Routes
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const productRoutes = require("./routes/productRoutes");
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
 
 dotenv.config();
 
 const app = express();
 
-// Connect to MongoDB
+// Connect MongoDB
 connectDB();
 
 // Global middleware
@@ -37,14 +35,13 @@ app.use("/api/users", userRoutes);
 // Product routes - You
 app.use("/api/products", productRoutes);
 
-// Handle unknown routes
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     message: "Route not found"
   });
 });
 
-// Server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
